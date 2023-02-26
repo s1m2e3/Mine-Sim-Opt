@@ -1,12 +1,12 @@
 import networkx as nx
 import numpy as np
+import simpy 
 
 def get_time_to_mine_entrance():
     return np.random.expo(10)
 
 def get_time_from_mine_entrance():
     return np.random.expo(25)
-
 
 class Graph():
     
@@ -18,6 +18,7 @@ class Graph():
         self.stockpiles = stockpiles
         self.benches = benches
         self.graph = nx.Graph()
+        self.env = simpy.Env()
         create_graph(times)
 
         
