@@ -32,7 +32,7 @@ class Truck(Vehicle):
         super().__init__(x, y, z)
         self.capacity = capacity
         self.travel = self.env.process(self.traveling())
-        
+        self.type = "Truck"
 
     def get_time_to_discharge(self):
         return np.random.expo(3)
@@ -59,6 +59,7 @@ class Truck(Vehicle):
                                 self.status="discharging"
                                 yield self.env.timeout(discharge_time)
                                 discharge_time = 0
+                                self.status = "idle"
                                 self.graph.plants[index].processed_tonnage += self.capacity
                                 self.task = None
 
@@ -85,6 +86,7 @@ class Truck(Vehicle):
                                     self.status="loading"
                                     yield self.env.timeout(load_time)
                                     load_time = 0
+                                    self.status = "idle"
                                     self.graph.benches[index].current_tonnage -= self.capacity
                                     self.task = None
                        
@@ -95,7 +97,7 @@ class Shovel(Vehicle):
         self.node = node
         self.resource = simpy.Resource(self.env,capacity=1)
         self.travel = self.env.process(self.traveling())
-
+        self.type="Shovel"
     def get_shovel_travel_time(self):
         return self.get_travel_time()*3
 
@@ -111,7 +113,10 @@ class Shovel(Vehicle):
                 #travel to destination bench
                 self.travel()
                 self.graph.benches[bench_index].resource = self.resource
-                self.status = "working"
+                if self.graph.benches[bench_index].current_tonnage > 0:
+                    self.status="working"
+                else:
+                    self.status="idle"
         else:
             raise ValueError("need to give task to shovel before assigning shovel to bench")
         
@@ -126,5 +131,5 @@ class Shovel(Vehicle):
                     self.task = self.task[1]
                     self.node = self.task
                 break
-        return 
+         
               

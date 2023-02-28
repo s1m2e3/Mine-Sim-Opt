@@ -2,15 +2,9 @@ import networkx as nx
 import numpy as np
 import simpy 
 
-def get_time_to_mine_entrance():
-    return np.random.expo(10)
-
-def get_time_from_mine_entrance():
-    return np.random.expo(25)
-
 class Graph():
     
-    def __init__(self,plants,stockpiles,benches,times=[],precedence = []):
+    def __init__(self,env,plants,stockpiles,benches,times=[],precedence = []):
 
         #self.route_nodes = route_nodes
         
@@ -18,19 +12,20 @@ class Graph():
         self.stockpiles = stockpiles
         self.benches = benches
         self.graph = nx.Graph()
-        self.env = simpy.Env()
-        create_graph(times)
-
+        self.env = env
+        self.create_graph(times)
+        self.num_nodes = 0
+        self.vehicles = {"Trucks":[],"Shovels":[]}
         
     def create_graph(self,times):
 
-        num_nodes = len(self.route_nodes)+len(self.plants)+len(self.stockpiles)+len(self.benches)+1
+        self.num_nodes = len(self.plants)+len(self.stockpiles)+len(self.benches)+1
         
         labels = []
         # labels.append(["route_"+str() for i in range(len(self.route_nodes))])
-        labels.append(["plant_"+str() for i in range(len(self.route_nodes))])
-        labels.append(["stockpile_"+str() for i in range(len(self.route_nodes))])
-        labels.append(["benches_"+str() for i in range(len(self.route_nodes))])
+        labels.extend(["plant_"+str(i) for i in range(len(self.plants))])
+        labels.extend(["stockpile_"+str(i) for i in range(len(self.stockpiles))])
+        labels.extend(["benches_"+str(i) for i in range(len(self.benches))])
         labels.append("mine_entrance")
         
 
@@ -38,10 +33,15 @@ class Graph():
             
             #create nodes_:
             nodes = np.arange(self.num_nodes)
-            self.graph.add_nodes = nodes
+            self.graph.add_nodes_from(nodes)
             #add name to nodes:
-            nx.set_node_attributes(self.graph, labels, "labels")
+            attr_dict = {}
+            for node in nodes:
+                attr_dict[node]={"labels":labels[node]}
+            
+            nx.set_node_attributes(self.graph, attr_dict)
             labels = nx.get_node_attributes(self.graph,"labels")
+            
             #nodes_routes = [i for i in range(len(labels)) if "route" in labels[i]]
             nodes_plant = [i for i in range(len(labels)) if "plant" in labels[i]]
             nodes_stockpile = [i for i in range(len(labels)) if "stockpile" in labels[i]]
@@ -53,6 +53,7 @@ class Graph():
             edges = []
             times = []
             for entrance in nodes_mine_entrance:
+                
                 #for route in nodes_routes:
                 #    edges.append((entrance,route))
                 for plant in nodes_plant:
@@ -66,9 +67,47 @@ class Graph():
                     edges.append((entrance,benches))
                     times.append(get_time_from_mine_entrance())
             
-            self.graph.add_eges_from(edges)
+            self.graph.add_edges_from(edges)
+            times = dict(zip(edges,times))
             #add time attribute
-            nx.set_edge_attributes(self.graph,times,"times")
-
+            attr_dict = {}
+            for pair in edges:
+                attr_dict[pair]={"times":times[pair]}
+            #print(attr_dict)
+            nx.set_edge_attributes(self.graph,attr_dict)
         else:
             pass
+
+    def add_vehicles(self,vehicle_tuple):
+        self.vehicles[vehicle_tuple[0]].append(vehicle_tuple[1])
+
+    def get_states(self):
+        
+        plants = [plant.resource.count for plant in self.plants]
+        plants.extend([plant.processed_tonnage for plant in self.plants])
+        plants.extend([len(plant.resource.queue) for plant in self.plants])
+        
+        benches = [bench.resource.count for bench in self.benches]
+        benches.extend([bench.current_tonnage for bench in self.benches])
+        benches.extend([len(bench.resource.queue) for bench in self.benches])
+
+        stockpiles = [stockpile.resource.count for stockpile in self.stockpiles]
+        stockpiles.extend([stockpile.current_tonnage for stockpile in self.stockpiles])
+        stockpiles.extend([len(stockpile.resource.queue) for stockpile in self.stockpiles])
+
+        trucks = [truck.status for truck in self.vehicles["Trucks"]]
+        shovels = [shovel.status for shovel in self.vehicles["Shovels"]]
+
+        return {"plants":plants,"benches":benches,"stockpiles":stockpiles,"trucks":trucks,"shovels":shovels}
+
+
+    def step(self,action):
+    
+
+
+def get_time_to_mine_entrance():
+    return np.round(np.random.exponential(10),2)
+
+def get_time_from_mine_entrance():
+    return np.round(np.random.exponential(25),2)
+
