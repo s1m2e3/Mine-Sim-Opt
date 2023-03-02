@@ -4,18 +4,21 @@ import numpy as np
 
 class Vehicle:
 
-    def __init__(self,graph,env, x=0, y=0, z=0,):
+    def __init__(self,graph,env, x=0, y=0, z=0,node = None):
         self.x = x
         self.y = y
         self.z = z
         self.graph = graph
         self.status = 'idle'
+        self.node = None
         self.env = env
+        self.available_tasks = []
         
     def assign(self, task):
         #task includes the tuple origin node to task 
         #Make sure that tasks will only contain  valid destiny points
         self.task = task
+        self.node = self.task[0]
         
     def get_travel_time(self):
         path  = nx.shortest_path(self.graph.graph,source=self.task[0],target=self.task[1])
@@ -48,6 +51,7 @@ class Truck(Vehicle):
                     yield self.env.timeout(travel_time)
                     travel_time = 0
                     self.task = self.task[1]
+                    self.node = self.task
                     final_node = self.graph[self.task]["labels"]
                     index = final_node.find("_")
                     index = final_node[index:]
@@ -91,10 +95,10 @@ class Truck(Vehicle):
                                     self.task = None
                        
 class Shovel(Vehicle):
-    def __init__(self, x, y, z, production_rate, node = None):
+    def __init__(self, x, y, z, production_rate):
         super().__init__(x, y, z)
         self.production_rate = production_rate
-        self.node = node
+        
         self.resource = simpy.Resource(self.env,capacity=1)
         self.travel = self.env.process(self.traveling())
         self.type="Shovel"
@@ -117,6 +121,7 @@ class Shovel(Vehicle):
                     self.status="working"
                 else:
                     self.status="idle"
+                    self.task = None
         else:
             raise ValueError("need to give task to shovel before assigning shovel to bench")
         

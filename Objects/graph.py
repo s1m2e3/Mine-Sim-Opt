@@ -16,7 +16,10 @@ class Graph():
         self.create_graph(times)
         self.num_nodes = 0
         self.vehicles = {"Trucks":[],"Shovels":[]}
-        
+        self.load_nodes = []
+        self.discharge_nodes = []
+
+
     def create_graph(self,times):
 
         self.num_nodes = len(self.plants)+len(self.stockpiles)+len(self.benches)+1
@@ -75,6 +78,14 @@ class Graph():
                 attr_dict[pair]={"times":times[pair]}
             #print(attr_dict)
             nx.set_edge_attributes(self.graph,attr_dict)
+            self.load_nodes = [i for i in labels if "benches" in labels[i]]
+            self.discharge_nodes = [i for i in labels if "plant" or "stockpile" in labels[i]]
+            self.possible_combinations = {}
+            for load_node in self.load_nodes:
+                self.possible_combinations[load_node]=[(load_node,discharge_node) for discharge_node in self.discharge_nodes]
+            for discharge_node in self.discharge_nodes:
+                self.possible_combinations[discharge_node]=[(discharge_node,load_node) for load_node in self.load_nodes]
+
         else:
             pass
 
@@ -96,13 +107,17 @@ class Graph():
         stockpiles.extend([len(stockpile.resource.queue) for stockpile in self.stockpiles])
 
         trucks = [truck.status for truck in self.vehicles["Trucks"]]
+        trucks.extend([truck.node for truck in self.vehicles["Trucks"]])
         shovels = [shovel.status for shovel in self.vehicles["Shovels"]]
+        shovels.extend([shovel.node for shovel in self.vehicles["Shovels"]])
 
         return {"plants":plants,"benches":benches,"stockpiles":stockpiles,"trucks":trucks,"shovels":shovels}
 
 
     def step(self,action):
-    
+
+        for 
+        pass
 
 
 def get_time_to_mine_entrance():
