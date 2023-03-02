@@ -1,6 +1,7 @@
 import networkx as nx
 import numpy as np
 import simpy 
+from Solution.solution import *
 
 class Graph():
     
@@ -18,6 +19,7 @@ class Graph():
         self.vehicles = {"Trucks":[],"Shovels":[]}
         self.load_nodes = []
         self.discharge_nodes = []
+        self.possible_combinations = {}
 
 
     def create_graph(self,times):
@@ -80,7 +82,7 @@ class Graph():
             nx.set_edge_attributes(self.graph,attr_dict)
             self.load_nodes = [i for i in labels if "benches" in labels[i]]
             self.discharge_nodes = [i for i in labels if "plant" or "stockpile" in labels[i]]
-            self.possible_combinations = {}
+            
             for load_node in self.load_nodes:
                 self.possible_combinations[load_node]=[(load_node,discharge_node) for discharge_node in self.discharge_nodes]
             for discharge_node in self.discharge_nodes:
@@ -113,12 +115,25 @@ class Graph():
 
         return {"plants":plants,"benches":benches,"stockpiles":stockpiles,"trucks":trucks,"shovels":shovels}
 
+    def get_rewards(self):
+        
+        plants=sum([len(plant.resource.queue) for plant in self.plants])
+        benches=sum([len(plant.resource.queue) for plant in self.plants])
+        stockpiles=sum([len(plant.resource.queue) for plant in self.plants])
+        trucks = sum([ truck.status=="idle" for truck in self.vehicles["Trucks"]])
+        shovels = sum([ shovel.status=="idle" for shovel in self.vehicles["Shovels"]])
+        
+        return plants+benches+stockpiles+trucks+shovels
+    
+    def step(self,solution):
 
-    def step(self,action):
-
-        for 
-        pass
-
+        for vehicle_type in solution:
+            for j in solution[vehicle_type]:
+                self.vehicles[vehicle_type][j].assign(solution.solution[vehicle_type][j])
+        self.env.step()
+        states = self.get_states()
+        rewards = self.get_rewards()
+        return states,rewards
 
 def get_time_to_mine_entrance():
     return np.round(np.random.exponential(10),2)

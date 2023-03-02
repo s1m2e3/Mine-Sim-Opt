@@ -10,7 +10,7 @@ class Vehicle:
         self.z = z
         self.graph = graph
         self.status = 'idle'
-        self.node = None
+        self.node = node
         self.env = env
         self.available_tasks = []
         

@@ -28,7 +28,7 @@ class Solution():
         
         labels = nx.get_node_attributes(self.graph.graph,"labels")
         load_nodes = self.graph.load_nodes
-        discharge_nodes = self.grpah.discharge_nodes
+        discharge_nodes = self.graph.discharge_nodes
 
 
         for vehicle_type in self.vehicles:
@@ -50,6 +50,7 @@ class Solution():
                     self.vehicles[vehicle_type][i].available_tasks = [(i,j) for j in discharge_nodes]
 
     def get_available_tasks(self):
+        
         available = {}
         for vehicle_type in self.vehicles:
             available[vehicle_type]={}
@@ -58,8 +59,10 @@ class Solution():
         return available
     
     def from_solution_to_actions(self):
+        
         #assuming the action space vehicles x actions
         #assuming that trucks are indexed before shovels and shovels before drilling and drilling before blasting teams
+        
         rows = sum([len(self.vehicles[vehicle_type]) for vehicle_type in self.vehicles])
         columns = len(self.graph.possible_combinations)
         count = 0 
@@ -77,9 +80,14 @@ class Solution():
         
         vehicle_type = list(self.vehicles)
         vehicle_number = [len(self.vehicles[vehicle_type]) for vehicle_type in self.vehicles]
-        vehicle_number = [sum(vehicle_number[0:i+1]) for i in range(len(vehicle_number))]
+        count = 0
+        for i in vehicle_number:
+            slice_per_veh_type = actions[count:i+count,:]    
+            count+=i
+            for j in np.arange(len(self.vehicles)):
+                for k in slice_per_veh_type:
+                    index = np.where(k==1)[0]
+                    choice = self.graph.possible_combinations[index]
+                    self.solution[vehicle_type[j]][k]=choice
+
         
-        for i in range(len(actions)):
-            index = np.where(actions[i,:]==1)[0]
-            vehicle_solution = self.graph.possible_combinations[index]
-            index_vehicle = np.where(vehicle_number>=i)[0][0]
