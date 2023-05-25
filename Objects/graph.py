@@ -8,24 +8,22 @@ class Graph():
     def __init__(self,env,plants,stockpiles,benches,times=[],precedence = []):
 
         #self.route_nodes = route_nodes
-        
         self.plants = plants
         self.stockpiles = stockpiles
         self.benches = benches
         self.graph = nx.Graph()
         self.env = env
-        self.create_graph(times)
+
         self.num_nodes = 0
         self.vehicles = {"Trucks":[],"Shovels":[]}
         self.load_nodes = []
         self.discharge_nodes = []
         self.possible_combinations = {}
-
+        self.create_graph(times)
 
     def create_graph(self,times):
 
         self.num_nodes = len(self.plants)+len(self.stockpiles)+len(self.benches)+1
-        
         labels = []
         # labels.append(["route_"+str() for i in range(len(self.route_nodes))])
         labels.extend(["plant_"+str(i) for i in range(len(self.plants))])
@@ -33,7 +31,6 @@ class Graph():
         labels.extend(["benches_"+str(i) for i in range(len(self.benches))])
         labels.append("mine_entrance")
         
-
         if len(times) == 0:
             
             #create nodes_:

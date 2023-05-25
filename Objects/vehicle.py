@@ -4,14 +4,15 @@ import numpy as np
 
 class Vehicle:
 
-    def __init__(self,graph,env, x=0, y=0, z=0,node = None):
+    def __init__(self,graph, x=0, y=0, z=0,node = None):
+        
         self.x = x
         self.y = y
         self.z = z
         self.graph = graph
         self.status = 'idle'
         self.node = node
-        self.env = env
+        self.env = self.graph.env
         self.available_tasks = []
         
     def assign(self, task):
@@ -31,8 +32,8 @@ class Vehicle:
 
 
 class Truck(Vehicle):
-    def __init__(self, x, y, z, capacity):
-        super().__init__(x, y, z)
+    def __init__(self,graph, capacity, x=0, y=0, z=0):
+        super().__init__(graph,capacity,x, y, z)
         self.capacity = capacity
         self.travel = self.env.process(self.traveling())
         self.type = "Truck"
@@ -95,8 +96,8 @@ class Truck(Vehicle):
                                     self.task = None
                        
 class Shovel(Vehicle):
-    def __init__(self, x, y, z, production_rate):
-        super().__init__(x, y, z)
+    def __init__(self,graph,production_rate, x=0, y=0, z=0):
+        super().__init__(graph,production_rate,x, y, z)
         self.production_rate = production_rate
         
         self.resource = simpy.Resource(self.env,capacity=1)
@@ -125,7 +126,7 @@ class Shovel(Vehicle):
         else:
             raise ValueError("need to give task to shovel before assigning shovel to bench")
         
-    def travel(self):
+    def traveling(self):
         travel_time = self.get_shovel_travel_time()
         while True:
             if self.task is not None:

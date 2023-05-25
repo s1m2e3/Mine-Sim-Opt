@@ -17,6 +17,7 @@ class Orchestrator():
         self.random_decay = 0.001
         self.number_of_nodes = 256
         self.crossover_type = "statistical"
+        self.population = {}
 
     def split(self,split_type="vehicle",physics_informed=False):
 
